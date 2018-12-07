@@ -1,0 +1,20 @@
+Package: GarchMidas
+Type: Package
+Title: GarchMidas
+Version: 1.0
+Date: 2018-12-06
+Author: Jason Zhang
+Maintainer: Jason Zhang <zhangzc@pku.edu.cn>
+Description: Estimating GARCH-MIDAS (MIxed-DAta-Sampling) models.
+Depends:
+    R (>= 3.3.0)
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Imports: 
+    Rcpp,
+    graphics,
+    stats,
+    numDeriv
+LinkingTo: Rcpp
+RoxygenNote: 6.1.1
