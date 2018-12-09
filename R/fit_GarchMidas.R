@@ -110,10 +110,9 @@ fit_GarchMidas <- function(data, y, x, K, low.freq = "month", var.ratio.freq = N
   output <-
     list(par = par,
          std.err = rob.std.err,
-         broom.mgarch = data.frame(term = names(par),
-                                   estimate = par,
-                                   rob.std.err = rob.std.err,
-                                   p.value = 2 * (1 - pnorm(unlist(abs(par/rob.std.err))))),
+         estimation = data.frame(estimate = round(par,3),
+                                 rob.std.err = round(rob.std.err,3),
+                                 p.value = round(2 * (1 - pnorm(unlist(abs(par/rob.std.err)))),3)),
          tau = tau,
          g = g,
          df.fitted = df.fitted,
@@ -132,7 +131,6 @@ fit_GarchMidas <- function(data, y, x, K, low.freq = "month", var.ratio.freq = N
                        na.rm = TRUE)
   output$tau.forecast <- tau_forecast
   output$est.weighting <- calculate_phi(w1 = par["w1"], w2 = par["w2"], K = K)
-  # Add class GarchMidas for employing generic functions
   class(output) <- "GarchMidas"
   output
 }

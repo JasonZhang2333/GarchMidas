@@ -3,7 +3,7 @@ print.GarchMidas <- function(x, ...) {
   if (class(x) != "GarchMidas") {
       stop("Obejct is not in class GarchMidas")
   }
-  print(x$broom.mgarch)
+  print(x$estimation)
 }
 
 #' @importFrom graphics lines
