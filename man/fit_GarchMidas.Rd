@@ -4,7 +4,8 @@
 \alias{fit_GarchMidas}
 \title{This function estimates a multiplicative mixed-frequency GARCH model. For the sake of numerical stability, it is best to multiply log returns by 100.}
 \usage{
-fit_GarchMidas(data, y, x, K, low.freq = "date", var.ratio.freq = NULL)
+fit_GarchMidas(data, y, x, K, low.freq = "month",
+  var.ratio.freq = NULL)
 }
 \arguments{
 \item{data}{data frame containing a column named date of type 'Date'.}
@@ -24,7 +25,7 @@ This function estimates a multiplicative mixed-frequency GARCH model. For the sa
 }
 \examples{
 \dontrun{
-fit_GarchMidas(data = df_financial, y = "return", x = "nfci", low.freq = "week", K = 52)
+fit_GarchMidas(data = mu, y = "return", x = "mu", low.freq = "month", K = 24)
 }
 }
 \keyword{fit_GarchMidas}

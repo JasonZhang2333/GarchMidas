@@ -7,9 +7,9 @@
 #' @param var.ratio.freq specify a frequency column on which the variance ratio should be calculated.
 #' @keywords fit_GarchMidas
 #' @export
-#' @importFrom numDeriv jacobian
+#' @importFrom pracma jacobian
 #' @importFrom stats nlminb
-#' @importFrom numDeriv hessian
+#' @importFrom pracma hessian
 #' @importFrom stats constrOptim
 #' @importFrom stats na.exclude
 #' @importFrom stats optim
@@ -19,10 +19,10 @@
 #' @importFrom utils tail
 #' @examples
 #' \dontrun{
-#' fit_GarchMidas(data = df_financial, y = "return", x = "nfci", low.freq = "week", K = 52)
+#' fit_GarchMidas(data = mu, y = "return", x = "mu", low.freq = "month", K = 24)
 #' }
 
-fit_GarchMidas <- function(data, y, x, K, low.freq = "date", var.ratio.freq = NULL) {
+fit_GarchMidas <- function(data, y, x, K, low.freq = "month", var.ratio.freq = NULL) {
   # Order by high frequency variable
   data <- data[order(data$date), ]
   # We store date in new variable because computation on integerized date seemed to be faster
@@ -98,20 +98,13 @@ fit_GarchMidas <- function(data, y, x, K, low.freq = "date", var.ratio.freq = NU
   df.fitted$residuals <- unlist((df.fitted[y] - par["mu"]) / sqrt(df.fitted$g * df.fitted$tau))
 
   df.fitted$date <- as.Date(date_backup)
+  
   # Standard errors --------------------------------------------------------------------------------
-  inv_hessian <- try({
-    solve(-suppressWarnings(hessian(x = par, func = function (theta) {
-        if( is.na(sum(lf(theta))) == TRUE) {
-          10000000
-        } else {
-          sum(lf(theta))
-        }
-      })))
-    }, silent = TRUE)
+  inv_hessian <- try({solve(-hessian(function (theta) {sum(lf(theta))},par,h=1e-6))})
   if (class(inv_hessian) == "try-error") {
     stop("Inverting the Hessian matrix failed. Possible workaround: Multiply returns by 100.")
   }
-  rob.std.err <- sqrt(diag(inv_hessian %*% crossprod(jacobian(func = lf, x = par)) %*% inv_hessian))
+  rob.std.err <- sqrt(diag(inv_hessian %*% crossprod(jacobian(lf, par)) %*% inv_hessian))
 
   # Output -----------------------------------------------------------------------------------------
   output <-
@@ -129,7 +122,7 @@ fit_GarchMidas <- function(data, y, x, K, low.freq = "date", var.ratio.freq = NU
          bic = log(sum(!is.na(tau))) * length(par) - 2 * (-p.e.nlminb$value),
          optim = p.e.nlminb)
 
-  # Additional output if there is a long-term component (K > 0) -------------------------------------
+  # Additional output -------------------------------------
   output$variance.ratio <- 100 *
                    var(log(aggregate(df.fitted$tau, by = df.fitted[var.ratio.freq],
                                      FUN = mean)[,2]),
