@@ -6,18 +6,17 @@
 using namespace Rcpp;
 
 // calculate_g
-NumericVector calculate_g(double omega, double alpha, double beta, double gamma, NumericVector returns, double g0);
-RcppExport SEXP _GarchMidas_calculate_g(SEXP omegaSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP gammaSEXP, SEXP returnsSEXP, SEXP g0SEXP) {
+NumericVector calculate_g(double omega, double alpha, double beta, NumericVector returns, double g0);
+RcppExport SEXP _GarchMidas_calculate_g(SEXP omegaSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP returnsSEXP, SEXP g0SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< double >::type omega(omegaSEXP);
     Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
     Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
-    Rcpp::traits::input_parameter< double >::type gamma(gammaSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type returns(returnsSEXP);
     Rcpp::traits::input_parameter< double >::type g0(g0SEXP);
-    rcpp_result_gen = Rcpp::wrap(calculate_g(omega, alpha, beta, gamma, returns, g0));
+    rcpp_result_gen = Rcpp::wrap(calculate_g(omega, alpha, beta, returns, g0));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -54,7 +53,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_GarchMidas_calculate_g", (DL_FUNC) &_GarchMidas_calculate_g, 6},
+    {"_GarchMidas_calculate_g", (DL_FUNC) &_GarchMidas_calculate_g, 5},
     {"_GarchMidas_sum_tau_fcts", (DL_FUNC) &_GarchMidas_sum_tau_fcts, 6},
     {"_GarchMidas_sum_tau", (DL_FUNC) &_GarchMidas_sum_tau, 5},
     {NULL, NULL, 0}

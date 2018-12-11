@@ -4,8 +4,7 @@
 \alias{fit_GarchMidas}
 \title{This function estimates a multiplicative mixed-frequency GARCH model. For the sake of numerical stability, it is best to multiply log returns by 100.}
 \usage{
-fit_GarchMidas(data, y, x, K, low.freq = "month",
-  var.ratio.freq = NULL)
+fit_GarchMidas(data, y, x, K, freq = "month")
 }
 \arguments{
 \item{data}{data frame containing a column named date of type 'Date'.}
@@ -16,16 +15,14 @@ fit_GarchMidas(data, y, x, K, low.freq = "month",
 
 \item{K}{an integer specifying lag length K in the long-term component.}
 
-\item{low.freq}{a string of the low frequency variable in the df.}
-
-\item{var.ratio.freq}{specify a frequency column on which the variance ratio should be calculated.}
+\item{freq}{a string of the low frequency variable in the df.}
 }
 \description{
 This function estimates a multiplicative mixed-frequency GARCH model. For the sake of numerical stability, it is best to multiply log returns by 100.
 }
 \examples{
 \dontrun{
-fit_GarchMidas(data = mu, y = "return", x = "mu", low.freq = "month", K = 24)
+fit_GarchMidas(data = mu, y = "return", x = "epu", K = 24, freq = "month")
 }
 }
 \keyword{fit_GarchMidas}

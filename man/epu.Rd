@@ -4,22 +4,20 @@
 \name{epu}
 \alias{epu}
 \title{Stock returns and uncertainty index.}
-\format{A data frame with 4,731 rows and 5 variables:
+\format{A data frame with 3,789 rows and 7 variables:
 \describe{
   \item{date}{date}
-  \item{return}{daily SSE log returns times 100}
-  \item{rv}{5-minute realized variances}
   \item{month}{a dummy for each year/month combination}
-  \item{epu}{Economic Policy Uncertainty Index}
+  \item{return}{daily SSE log returns}
+  \item{hundredfold_return}{daily SSE log returns times 100}
+  \item{rv}{5-minute realized variances}
+  \item{epu}{Economic Policy Uncertainty Index divided by 100}
+  \item{hundredfold_epu}{Economic Policy Uncertainty Index}
 }}
 \usage{
 epu
-
-epu
 }
 \description{
-A dataset containing SSE (Shanghai Stock Exchange) Composite Index returns and the Economic Policy Uncertainty Index
-
-A dataset containing SSE (Shanghai Stock Exchange) Composite Index returns and the Economic Policy Uncertainty Index
+A dataset containing SSE (Shanghai Stock Exchange) Composite Index returns and the China Economic Policy Uncertainty Index
 }
 \keyword{datasets}
