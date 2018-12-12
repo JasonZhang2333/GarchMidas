@@ -9,6 +9,7 @@
 #' @importFrom pracma jacobian
 #' @importFrom stats nlminb
 #' @importFrom pracma hessian
+#' @importFrom pracma zeros
 #' @importFrom stats constrOptim
 #' @importFrom stats na.exclude
 #' @importFrom stats optim
@@ -31,22 +32,11 @@ fit_GarchMidas <- function(data, y, x, K, freq = "month") {
   g0 <- var(unlist(data[[y]]))
   covariate <- unlist(unique(data[c(freq, x)])[x])
   
-  # Parameter estimation
+  # Parameter estimation ----------------------------------------------------------------------------
   lf <- function(p) {
-    llh(df = df.llh,
-        y = data[[y]],
-        x = covariate,
-        freq = freq,
-        mu = p["mu"],
-        omega = 1 - p["alpha"] - p["beta"],
-        alpha  = p["alpha"],
-        beta = p["beta"],
-        m = p["m"],
-        theta = p["theta"],
-        w1 = p["w1"],
-        w2 = p["w2"],
-        g0 = g0,
-        K = K)
+    llh(df = df.llh, y = data[[y]], x = covariate, freq = freq, mu = p["mu"], 
+        omega = 1 - p["alpha"] - p["beta"], alpha  = p["alpha"], beta = p["beta"], 
+        m = p["m"], theta = p["theta"], w1 = p["w1"], w2 = p["w2"], g0 = g0, K = K)
   }
   par.start <- c(mu = 0, alpha = 0.02, beta = 0.85, m = 0, theta = 0, w1 = 1.00000001, w2 = 3)
   ui.opt <- rbind(c(0, -1, -1, 0, 0, 0, 0),
@@ -81,17 +71,23 @@ fit_GarchMidas <- function(data, y, x, K, freq = "month") {
   df.fitted$date <- as.Date(date_backup)
   
   # Standard errors --------------------------------------------------------------------------------
-  inv_hessian <- try({solve(-hessian(function (theta) {sum(lf(theta))},par,h=1e-5))})
+  inv_hessian <- try({solve(-hessian(function (theta) {sum(lf(theta))},par,h=1e-6))})
+  if (class(inv_hessian) == "try-error") {
+    warning("Inverting the Hessian matrix failed. Possible workaround: Multiply returns by 100.")
+    inv_hessian<-zeros(length(par))
+  }
   rob.std.err <- sqrt(diag(inv_hessian %*% crossprod(jacobian(lf, par)) %*% inv_hessian))
-
   # Output -----------------------------------------------------------------------------------------
   output <-
-    list(par = par,
+    list(parameters = par,
          std.err = rob.std.err,
+         residuals=df.fitted$residuals,
          estimation = data.frame(estimate = round(par,3),
                                  std.err = round(rob.std.err,3),
                                  p.value = round(2 * (1 - pnorm(unlist(abs(par/rob.std.err)))),3)),
+         phi=calculate_phi(w1 = par["w1"], w2 = par["w2"], K = K),
          tau = tau,
+         tau.forecast=tau_forecast,
          g = g,
          df.fitted = df.fitted,
          K = K,
@@ -105,8 +101,6 @@ fit_GarchMidas <- function(data, y, x, K, freq = "month") {
                    var(log(aggregate(df.fitted$tau * df.fitted$g, by = df.fitted[freq],
                                      FUN = mean)[,2]),
                        na.rm = TRUE)
-  output$tau.forecast <- tau_forecast
-  output$est.weighting <- calculate_phi(w1 = par["w1"], w2 = par["w2"], K = K)
   class(output) <- "GarchMidas"
   output
 }

@@ -32,7 +32,6 @@ llh <-function(df, x, y, freq, mu, omega, alpha, beta,
     if (sum(g <= 0) > 0) {
       print(sum(g <= 0))
       stop("g_t seems to be negative for at least one point in time?")
-      rep(NA, times = length(g))
     } else {
       1/2 * log(2 * pi) + 1/2 * log(g * tau) + 1/2 * (ret - mu)^2/(g * tau)
     }

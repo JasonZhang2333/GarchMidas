@@ -63,7 +63,30 @@ plot_weighting_scheme <- function(x) {
   if (class(x) != "GarchMidas") {
     stop("Obejct is not in class GarchMidas")
   }
-  k = c(1:x$K)
-  phi = calculate_phi(w1 = x$par["w1"], w2 = x$par["w2"], K = x$K)
-  plot(k, phi)
+  plot(c(1:x$K), x$phi)
+}
+
+#' This function finds the best K of an estimated GARCH-MIDAS model
+#' @param data data frame containing a column named date of type 'Date'.
+#' @param y name of high frequency dependent variable in df.
+#' @param x covariate employed in GarchMidas.
+#' @param freq a string of the low frequency variable in the df.
+#' @param K.seq an integer sequence specifying lag length K in the long-term component.
+#' @export
+#' @importFrom parallel detectCores
+#' @importFrom parallel makeCluster
+#' @importFrom parallel clusterEvalQ
+#' @importFrom parallel parLapply
+#' @importFrom parallel stopCluster
+caculate_llh <- function(data, y, x, freq = "month", K.seq = c(6:48)) {
+  fun <- function(k){
+    result <-fit_GarchMidas(data,y,x,k,freq)
+    result$llh
+  }
+  clnum<-detectCores(logical = FALSE)
+  cl<-makeCluster(getOption('cl.cores',clnum))
+  clusterEvalQ(cl, library(GarchMidas))
+  llhs<-parLapply(cl,K.seq,fun)
+  stopCluster(cl)
+  llhs
 }
