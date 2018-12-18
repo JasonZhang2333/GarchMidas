@@ -38,3 +38,5 @@ rsconnect/
 /data-raw/
 src/*.o
 src/*.dll
+
+*.pdf
