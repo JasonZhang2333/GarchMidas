@@ -13,46 +13,28 @@ plot.GarchMidas <- function(x, ...) {
     stop("Obejct is not in class GarchMidas")
   }
 
-  df_plot <- aggregate(x$df.fitted, by = list(x$df.fitted[, 3]), FUN = mean)
-  plot(x = df_plot[, 1], y = sqrt(df_plot$g),
+  df_plot <- x$df.fitted[which(!is.na(x$df.fitted$g)),]
+  plot(x = df_plot[, 1], y = sqrt(252*df_plot$g*df_plot$tau),
        type = "l",
        xlab = colnames(x$df.fitted)[3], ylab = "vol",
        main = "sqrt(tau * g) and sqrt(tau) in red", sub = "")
   lines(x = df_plot[, 1],
-        y = sqrt(df_plot$tau),
+        y = sqrt(252*df_plot$tau),
         col = "red")
 }
 
 #' @export
-predict.GarchMidas <- function(object, horizon = c(1:10), fcts.tau = NULL, return = NULL, cond.var = NULL, cond.tau = NULL, ...) {
-  if (class(object) != "GarchMidas") {
+predict.GarchMidas <- function(x,date, ...) {
+  if (class(x) != "GarchMidas") {
     stop("Obejct is not in class GarchMidas")
   }
+  index <- which(x$df.fitted$date>=as.Date(date))[1]
+  fitted <- x$df.fitted[(index-1):dim(x$df.fitted)[1],]
+  alpha <- x$par["alpha"]
+  beta <- x$par["beta"]
 
-  if (is.null(cond.var) == TRUE) {
-    cond.var <- tail(object$g, 1)
-  }
-
-  if (is.null(cond.tau) == TRUE) {
-    cond.tau <- tail(object$tau, 1)
-  }
-
-  if (is.null(fcts.tau) == TRUE) {
-    fcts.tau <- object$tau.forecast
-  }
-
-  if (is.null(return) == TRUE) {
-    return <- tail(object$df.fitted$return, 1)
-  }
-
-  fcts.tau * as.numeric(sapply(horizon, forecast_garch,
-                               omega = 1 - object$par["alpha"] - object$par["beta"],
-                               alpha = object$par["alpha"],
-                               beta = object$par["beta"],
-                               gamma = 0,
-                               ret = (return - object$par["mu"])/ sqrt(cond.tau),
-                               g = cond.var))
-
+  result<-fitted$tau*(1-alpha-beta+beta*fitted$g)+alpha*(fitted[,2]-x$par["mu"])^2
+  result[-length(result)]/10000
 }
 
 #' This function plots the weighting scheme of an estimated GARCH-MIDAS model

@@ -52,13 +52,6 @@ fit_GarchMidas <- function(data, y, x, K, freq = "month") {
                           w1 = par["w1"], w2 = par["w2"],
                           theta = par["theta"],
                           m = par["m"], K = K)$tau
-  tau_forecast <-
-    exp(sum_tau_fcts(m = par["m"],
-                     i = K + 1,
-                     theta = par["theta"],
-                     phivar = calculate_phi(w1 = par["w1"], w2 = par["w2"], K = K),
-                     covariate = c(tail(unlist(unique(data[c(x, freq)])[x]), K), NA),
-                     K = K))
   returns <- unlist(data[y])
   g <- c(rep(NA, times = sum(is.na((returns - par["mu"])/sqrt(tau)))),
          calculate_g(omega = 1 - par["alpha"] - par["beta"],
@@ -87,7 +80,6 @@ fit_GarchMidas <- function(data, y, x, K, freq = "month") {
                                  p.value = round(2 * (1 - pnorm(unlist(abs(par/rob.std.err)))),3)),
          phi=calculate_phi(w1 = par["w1"], w2 = par["w2"], K = K),
          tau = tau,
-         tau.forecast=tau_forecast,
          g = g,
          df.fitted = df.fitted,
          K = K,

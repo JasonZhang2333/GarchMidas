@@ -5,10 +5,6 @@ calculate_g <- function(omega, alpha, beta, returns, g0) {
     .Call('_GarchMidas_calculate_g', PACKAGE = 'GarchMidas', omega, alpha, beta, returns, g0)
 }
 
-sum_tau_fcts <- function(i, m, theta, phivar, covariate, K) {
-    .Call('_GarchMidas_sum_tau_fcts', PACKAGE = 'GarchMidas', i, m, theta, phivar, covariate, K)
-}
-
 sum_tau <- function(m, theta, phivar, covariate, K) {
     .Call('_GarchMidas_sum_tau', PACKAGE = 'GarchMidas', m, theta, phivar, covariate, K)
 }

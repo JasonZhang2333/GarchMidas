@@ -20,22 +20,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// sum_tau_fcts
-double sum_tau_fcts(int i, double m, double theta, NumericVector phivar, NumericVector covariate, int K);
-RcppExport SEXP _GarchMidas_sum_tau_fcts(SEXP iSEXP, SEXP mSEXP, SEXP thetaSEXP, SEXP phivarSEXP, SEXP covariateSEXP, SEXP KSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type i(iSEXP);
-    Rcpp::traits::input_parameter< double >::type m(mSEXP);
-    Rcpp::traits::input_parameter< double >::type theta(thetaSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type phivar(phivarSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type covariate(covariateSEXP);
-    Rcpp::traits::input_parameter< int >::type K(KSEXP);
-    rcpp_result_gen = Rcpp::wrap(sum_tau_fcts(i, m, theta, phivar, covariate, K));
-    return rcpp_result_gen;
-END_RCPP
-}
 // sum_tau
 NumericVector sum_tau(double m, double theta, NumericVector phivar, NumericVector covariate, int K);
 RcppExport SEXP _GarchMidas_sum_tau(SEXP mSEXP, SEXP thetaSEXP, SEXP phivarSEXP, SEXP covariateSEXP, SEXP KSEXP) {
@@ -54,7 +38,6 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_GarchMidas_calculate_g", (DL_FUNC) &_GarchMidas_calculate_g, 5},
-    {"_GarchMidas_sum_tau_fcts", (DL_FUNC) &_GarchMidas_sum_tau_fcts, 6},
     {"_GarchMidas_sum_tau", (DL_FUNC) &_GarchMidas_sum_tau, 5},
     {NULL, NULL, 0}
 };
