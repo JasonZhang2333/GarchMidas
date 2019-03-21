@@ -1,6 +1,6 @@
 #' @keywords internal
-forecast_garch <- function(omega, alpha, beta, g, ret, steps.ahead) {
-  omega / (1 - alpha - beta) + (alpha + beta)^(steps.ahead - 1) * (omega + alpha * ret^2 + beta * g - omega / (1 - alpha - beta))
+forecast_garch <- function(omega, alpha, beta, gamma, g, ret, steps.ahead) {
+  omega / (1 - alpha - gamma/2 - beta) + (alpha + beta + gamma/2)^(steps.ahead - 1) * (omega + (alpha + gamma/2 * as.numeric(ret < 0)) * ret^2 + beta * g - omega / (1 - alpha - gamma/2 - beta))
 }
 
 #' @keywords internal
@@ -20,14 +20,14 @@ calculate_tau <- function(df, x, freq, w1, w2, theta, m, K) {
 }
 
 #' @keywords internal
-llh <-function(df, x, y, freq, mu, omega, alpha, beta,
+mle <-function(df, x, y, freq, mu, omega, alpha, beta, gamma,
            m, theta, w1 = 1, w2 = 1, g0, K) {
 
     tau <- calculate_tau(df = df, x = x, freq = freq,
                             w1 = w1, w2 = w2, theta = theta, m = m, K = K)$tau
     ret <- y[which.min(is.na(tau)):length(y)]  # lags can't be used for likelihood
     tau <- tau[which.min(is.na(tau)):length(tau)]
-    g <- calculate_g(omega = omega, alpha = alpha, beta = beta,
+    g <- calculate_g(omega = omega, alpha = alpha, beta = beta, gamma = gamma,
                      returns = ((ret - mu)/sqrt(tau)), g0 = g0)
     if (sum(g <= 0) > 0) {
       print(sum(g <= 0))

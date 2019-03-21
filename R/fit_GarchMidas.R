@@ -4,6 +4,7 @@
 #' @param x covariate employed in GarchMidas.
 #' @param K an integer specifying lag length K in the long-term component.
 #' @param freq a string of the low frequency variable in the df.
+#' @param GJR if TRUE, an asymmetric GJR-GARCH is used as the short-term component. If FALSE, a simple GARCH(1,1) is employed.
 #' @keywords fit_GarchMidas
 #' @export
 #' @importFrom pracma jacobian
@@ -22,30 +23,28 @@
 #' fit_GarchMidas(data = mu, y = "return", x = "epu", K = 24, freq = "month")
 #' }
 
-fit_GarchMidas <- function(data, y, x, K, freq = "month") {
-  data <- data[order(data$date), ]
+fit_GarchMidas <- function(data, y, x, K, freq = "month", GJR = TRUE) {
   date_backup <- data[["date"]]
-  # We store date in new variable because computation on integerized date seemed to be faster
   data["date"] <- as.numeric(unlist(data["date"]))
-  df.llh <- data[, c(y, x, freq)]
-  df.llh[, freq] <- as.integer(unlist(df.llh[ , freq]))
+  df <- data[, c(y, x, freq)]
+  df[, freq] <- as.integer(unlist(df[ , freq]))
   g0 <- var(unlist(data[[y]]))
   covariate <- unlist(unique(data[c(freq, x)])[x])
   
   # Parameter estimation ----------------------------------------------------------------------------
   lf <- function(p) {
-    llh(df = df.llh, y = data[[y]], x = covariate, freq = freq, mu = p["mu"], 
-        omega = 1 - p["alpha"] - p["beta"], alpha  = p["alpha"], beta = p["beta"], 
+    mle(df = df, y = data[[y]], x = covariate, freq = freq, mu = p["mu"], 
+        omega = 1 - p["alpha"] - p["beta"], alpha  = p["alpha"], beta = p["beta"], gamma = p["gamma"],
         m = p["m"], theta = p["theta"], w1 = p["w1"], w2 = p["w2"], g0 = g0, K = K)
   }
-  par.start <- c(mu = 0, alpha = 0.02, beta = 0.85, m = 0, theta = 0, w1 = 1.00000001, w2 = 3)
-  ui.opt <- rbind(c(0, -1, -1, 0, 0, 0, 0),
-                  c(0,  0,  0, 0, 0, 1, 0),
-                  c(0,  0,  0, 0, 0, 0, 1),
-                  c(0,  1,  0, 0, 0, 0, 0),
-                  c(0,  0,  1, 0, 0, 0, 0))
+  par0 <- c(mu = 0, alpha = 0.02, beta = 0.85, gamma = 0.04, m = 0, theta = 0, w1 = 1.00000001, w2 = 3)
+  ui.opt <- rbind(c(0, -1, -1, -1/2, 0, 0, 0, 0),
+                  c(0,  0,  0, 0, 0, 0, 1, 0),
+                  c(0,  0,  0, 0, 0, 0, 0, 1),
+                  c(0,  1,  0, 0, 0, 0, 0, 0),
+                  c(0,  0,  1, 0, 0, 0, 0, 0))
   ci.opt <- c(-0.99999999, 1, 1, 0, 0)
-  optim.par <- constrOptim(theta = par.start, f = function(theta) { sum(lf(theta)) },
+  optim.par <- constrOptim(theta = par0, f = function(theta) { sum(lf(theta)) },
                             grad = NULL, ui = ui.opt, ci = ci.opt, hessian = FALSE)
   par <- optim.par$par
   tau <- calculate_tau(df = data, x = covariate, freq = freq,
@@ -57,6 +56,7 @@ fit_GarchMidas <- function(data, y, x, K, freq = "month") {
          calculate_g(omega = 1 - par["alpha"] - par["beta"],
                      alpha = par["alpha"],
                      beta = par["beta"],
+                     gamma = par["gamma"],
                      as.numeric(na.exclude((returns - par["mu"])/sqrt(tau))),
                      g0 = g0))
   df.fitted <- cbind(data[c("date", y, freq, x)], g = g, tau = tau)
