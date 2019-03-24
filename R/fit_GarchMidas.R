@@ -23,7 +23,7 @@
 #' fit_GarchMidas(data = mu, y = "return", x = "epu", K = 24, freq = "month")
 #' }
 
-fit_GarchMidas <- function(data, y, x, K, freq = "month", GJR = TRUE) {
+fit_GarchMidas <- function(data, y, x, K, freq = "month", GJR = FALSE) {
   date_backup <- data[["date"]]
   data["date"] <- as.numeric(unlist(data["date"]))
   df <- data[, c(y, x, freq)]
@@ -32,17 +32,31 @@ fit_GarchMidas <- function(data, y, x, K, freq = "month", GJR = TRUE) {
   covariate <- unlist(unique(data[c(freq, x)])[x])
   
   # Parameter estimation ----------------------------------------------------------------------------
-  lf <- function(p) {
-    mle(df = df, y = data[[y]], x = covariate, freq = freq, mu = p["mu"], 
-        omega = 1 - p["alpha"] - p["beta"], alpha  = p["alpha"], beta = p["beta"], gamma = p["gamma"],
-        m = p["m"], theta = p["theta"], w1 = p["w1"], w2 = p["w2"], g0 = g0, K = K)
+  if(GJR){
+    lf <- function(p) {
+      mle(df = df, y = data[[y]], x = covariate, freq = freq, mu = p["mu"], 
+          omega = 1 - p["alpha"] - p["beta"], alpha  = p["alpha"], beta = p["beta"], gamma = p["gamma"],
+          m = p["m"], theta = p["theta"], w1 = p["w1"], w2 = p["w2"], g0 = g0, K = K)
+    }
+    par0 <- c(mu = 0, alpha = 0.02, beta = 0.85, gamma = 0.04, m = 0, theta = 0, w1 = 1.00000001, w2 = 3)
+    ui.opt <- rbind(c(0, -1, -1, -1/2, 0, 0, 0, 0),
+                    c(0,  0,  0, 0, 0, 0, 1, 0),
+                    c(0,  0,  0, 0, 0, 0, 0, 1),
+                    c(0,  1,  0, 0, 0, 0, 0, 0),
+                    c(0,  0,  1, 0, 0, 0, 0, 0))
+  }else{
+    lf <- function(p) {
+      mle(df = df, y = data[[y]], x = covariate, freq = freq, mu = p["mu"], 
+          omega = 1 - p["alpha"] - p["beta"], alpha  = p["alpha"], beta = p["beta"], gamma = 0,
+          m = p["m"], theta = p["theta"], w1 = p["w1"], w2 = p["w2"], g0 = g0, K = K)
+    }
+    par0 <- c(mu = 0, alpha = 0.02, beta = 0.85, m = 0, theta = 0, w1 = 1.00000001, w2 = 3)
+    ui.opt <- rbind(c(0, -1, -1, 0, 0, 0, 0),
+                    c(0,  0,  0, 0, 0, 1, 0),
+                    c(0,  0,  0, 0, 0, 0, 1),
+                    c(0,  1,  0, 0, 0, 0, 0),
+                    c(0,  0,  1, 0, 0, 0, 0))
   }
-  par0 <- c(mu = 0, alpha = 0.02, beta = 0.85, gamma = 0.04, m = 0, theta = 0, w1 = 1.00000001, w2 = 3)
-  ui.opt <- rbind(c(0, -1, -1, -1/2, 0, 0, 0, 0),
-                  c(0,  0,  0, 0, 0, 0, 1, 0),
-                  c(0,  0,  0, 0, 0, 0, 0, 1),
-                  c(0,  1,  0, 0, 0, 0, 0, 0),
-                  c(0,  0,  1, 0, 0, 0, 0, 0))
   ci.opt <- c(-0.99999999, 1, 1, 0, 0)
   optim.par <- constrOptim(theta = par0, f = function(theta) { sum(lf(theta)) },
                             grad = NULL, ui = ui.opt, ci = ci.opt, hessian = FALSE)
@@ -52,11 +66,16 @@ fit_GarchMidas <- function(data, y, x, K, freq = "month", GJR = TRUE) {
                           theta = par["theta"],
                           m = par["m"], K = K)$tau
   returns <- unlist(data[y])
+  if(GJR){
+    gamma = par["gamma"]
+  }else{
+    gamma = 0
+  }
   g <- c(rep(NA, times = sum(is.na((returns - par["mu"])/sqrt(tau)))),
          calculate_g(omega = 1 - par["alpha"] - par["beta"],
                      alpha = par["alpha"],
                      beta = par["beta"],
-                     gamma = par["gamma"],
+                     gamma = gamma,
                      as.numeric(na.exclude((returns - par["mu"])/sqrt(tau))),
                      g0 = g0))
   df.fitted <- cbind(data[c("date", y, freq, x)], g = g, tau = tau)

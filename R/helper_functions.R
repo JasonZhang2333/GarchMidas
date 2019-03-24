@@ -36,3 +36,12 @@ mle <-function(df, x, y, freq, mu, omega, alpha, beta, gamma,
       1/2 * log(2 * pi) + 1/2 * log(g * tau) + 1/2 * (ret - mu)^2/(g * tau)
     }
   }
+
+#' @keywords internal
+boot.block <- function(x, v, n, k){
+  start_indexs <-sample(1:(n-k), v+1)
+  result = do.call(c, lapply(start_indexs, function(p, k){
+    p + seq_len(k)
+  }, k=k))
+  return(result[1:n])
+}
