@@ -20,7 +20,7 @@
 #' @importFrom utils tail
 #' @examples
 #' \dontrun{
-#' fit_GarchMidas(data = mu, y = "return", x = "epu", K = 24, freq = "month")
+#' fit_GarchMidas(data = mu, y = "return", x = "epu", K = 24, freq = "month", GJR = TRUE)
 #' }
 
 fit_GarchMidas <- function(data, y, x, K, freq = "month", GJR = FALSE) {
@@ -83,20 +83,20 @@ fit_GarchMidas <- function(data, y, x, K, freq = "month", GJR = FALSE) {
   df.fitted$date <- as.Date(date_backup)
   
   # Standard errors --------------------------------------------------------------------------------
-  inv_hessian <- try({solve(-hessian(function (theta) {sum(lf(theta))},par,h=1e-6))})
-  if (class(inv_hessian) == "try-error") {
-    warning("Inverting the Hessian matrix failed. Possible workaround: Multiply returns by 100.")
-    inv_hessian<-zeros(length(par))
-  }
-  rob.std.err <- sqrt(diag(inv_hessian %*% crossprod(jacobian(lf, par)) %*% inv_hessian))
+  # inv_hessian <- try({solve(-hessian(function (theta) {sum(lf(theta))},par,h=1e-6))})
+  # if (class(inv_hessian) == "try-error") {
+  #   warning("Inverting the Hessian matrix failed. Possible workaround: Multiply returns by 100.")
+  #   inv_hessian<-zeros(length(par))
+  # }
+  # rob.std.err <- sqrt(diag(inv_hessian %*% crossprod(jacobian(lf, par)) %*% inv_hessian))
   # Output -----------------------------------------------------------------------------------------
   output <-
     list(parameters = par,
-         std.err = rob.std.err,
+         # std.err = rob.std.err,
          residuals=df.fitted$residuals,
-         estimation = data.frame(estimate = round(par,3),
-                                 std.err = round(rob.std.err,3),
-                                 p.value = round(2 * (1 - pnorm(unlist(abs(par/rob.std.err)))),3)),
+         # estimation = data.frame(estimate = round(par,3),
+         #                         std.err = round(rob.std.err,3),
+         #                         p.value = round(2 * (1 - pnorm(unlist(abs(par/rob.std.err)))),3)),
          phi=calculate_phi(w1 = par["w1"], w2 = par["w2"], K = K),
          tau = tau,
          g = g,
